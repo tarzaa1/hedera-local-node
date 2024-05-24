@@ -23,7 +23,7 @@ data:
             cloudProvider: S3
             secretKey: minioadmin
             bucketName: hedera-streams
-            endpointOverride: http://minio.default.svc.cluster.local:9000
+            endpointOverride: http://minio-0.minio.default.svc.cluster.local:9000
           initialAddressBook: /usr/etc/hedera-mirror-importer/local-dev-1-node.addressbook.f102.json.bin
           network: OTHER
         monitor:
