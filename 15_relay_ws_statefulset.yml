@@ -1,0 +1,106 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: relay-ws
+spec:
+  serviceName: relay-ws
+  replicas: 1
+  selector:
+    matchLabels:
+      app: relay-ws
+  template:
+    metadata:
+      labels:
+        app: relay-ws
+    spec:
+      initContainers:
+      - name: check-pods-ready
+        image: bitnami/kubectl
+        command:
+        - 'sh'
+        - '-c'
+        - >
+          until kubectl get pods mirror-node-rest-0 -n default -o jsonpath='{.status.phase}' | grep Running && kubectl get pods network-node-statefulset-0 -n default -o jsonpath='{.status.phase}' | grep Running; do echo waiting for pods; sleep 5; done
+      containers:
+      - name: relay-ws
+        image: ghcr.io/hashgraph/hedera-json-rpc-relay:0.42.0
+        args: ["start:ws"]
+        resources:
+          limits:
+            memory: "732Mi"
+          requests:
+            memory: "732Mi"
+        env:
+        # - name: HEDERA_NETWORK
+        #   value: '{"network-node-statefulset-0.network-node.default.svc.cluster.local:50211":"0.0.3"}'
+        # - name: OPERATOR_ID_MAIN
+        #   value: "0.0.2"
+        # - name: OPERATOR_KEY_MAIN
+        #   value: "302e020100300506032b65700422042091132178e72057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137"
+        # - name: CHAIN_ID
+        #   value: "0x12a"
+        # - name: MIRROR_NODE_URL
+        #   value: "http://mirror-node-rest-0.mirror-node-rest.default.svc.cluster.local:5551"
+        # - name: MIRROR_NODE_RETRIES
+        #   value: "3"
+        # - name: MIRROR_NODE_RETRY_DELAY
+        #   value: "250"
+        # - name: LOCAL_NODE
+        #   value: "true"
+        # - name: SERVER_PORT
+        #   value: "7546"
+        # - name: E2E_RELAY_HOST
+        #   value: http://127.0.0.1:7546
+        # - name: FEE_HISTORY_MAX_RESULTS
+        #   value: "10"
+        # - name: DEFAULT_RATE_LIMIT
+        #   value: "200"
+        # - name: TIER_1_RATE_LIMIT
+        #   value: "100"
+        # - name: TIER_2_RATE_LIMIT
+        #   value: "800"
+        # - name: TIER_3_RATE_LIMIT
+        #   value: "1600"
+        # - name: LIMIT_DURATION
+        #   value: "60000"
+        # - name: HBAR_RATE_LIMIT_TINYBAR
+        #   value: "0"
+        # - name: HBAR_RATE_LIMIT_DURATION
+        #   value: "0"
+        # - name: ETH_GET_LOGS_BLOCK_RANGE_LIMIT
+        #   value: "1000"
+        # - name: DEV_MODE
+        #   value: "false"
+        # - name: INPUT_SIZE_LIMIT
+        #   value: "1"
+        # - name: RATE_LIMIT_DISABLED
+        #   value: "true"
+        # - name: ETH_POPULATE_SYNTHETIC_CONTRACT_RESULTS
+        #   value: "${RELAY_ETH_POPULATE_SYNTHETIC_CONTRACT_RESULTS}"
+        # - name: REDIS_ENABLED
+        #   value: "false"
+        # - name: REDIS_URL
+        #   value: redis://127.0.0.1:6379
+        - name: SUBSCRIPTIONS_ENABLED
+          value: "true"
+        - name: HEALTHCHECK_PORT
+          value: "8547"
+        - name: ETH_POPULATE_SYNTHETIC_CONTRACT_RESULTS
+          value: "${RELAY_ETH_POPULATE_SYNTHETIC_CONTRACT_RESULTS}"
+        - name: WS_CONNECTION_LIMIT_PER_IP
+          value: "${RELAY_WS_CONNECTION_LIMIT_PER_IP}"
+        - name: WS_CONNECTION_LIMIT
+          value: "${RELAY_WS_CONNECTION_LIMIT}"
+        - name: WS_MAX_INACTIVITY_TTL
+          value: "${RELAY_WS_MAX_INACTIVITY_TTL}"
+        - name: WS_MULTIPLE_ADDRESSES_ENABLED
+          value: "${RELAY_WS_MULTIPLE_ADDRESSES_ENABLED}"
+        - name: WS_SUBSCRIPTION_LIMIT
+          value: "${RELAY_WS_SUBSCRIPTION_LIMIT}"
+        envFrom: 
+           - configMapRef: 
+               name: relay-ws-config
+        ports:
+        - containerPort: 8546
+        - containerPort: 8547
+       

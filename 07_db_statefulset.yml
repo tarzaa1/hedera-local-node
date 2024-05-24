@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mirror-node-db
+spec:
+  serviceName: "mirror-node-db"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mirror-node-db
+  template:
+    metadata:
+      labels:
+        app: mirror-node-db
+    spec:
+      nodeName: clever-shradda-work01
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 120
+      initContainers:
+      - name: clean-up
+        image: busybox
+        command: ['sh', '-c', 'rm -rf /mirror-node-postgres/_data && mkdir -p /mirror-node-postgres/_data']
+        volumeMounts:
+        - name: mirror-node-postgres-vol
+          mountPath: /mirror-node-postgres
+      containers:
+      - name: mirror-node-db
+        image: postgres:14-alpine   
+        # command: ["sh", "-c", "su protgres /docker-entrypoint-initdb.d/init.sh"]
+        env:
+        - name: POSTGRES_HOST_AUTH_METHOD
+          value: "scram-sha-256"
+        - name: POSTGRES_INITDB_ARGS
+          value: "--auth-host=scram-sha-256"
+        - name: GRPC_PASSWORD
+          value: "mirror_grpc_pass"
+        - name: IMPORTER_PASSWORD
+          value: "mirror_importer_pass"
+        - name: OWNER_PASSWORD
+          value: "mirror_node_pass"
+        - name: POSTGRES_PASSWORD
+          value: "postgres_password"
+        - name: REST_PASSWORD
+          value: "mirror_api_pass"
+        - name: ROSETTA_PASSWORD
+          value: "mirror_rosetta_pass"
+        ports:
+        - containerPort: 5432
+        volumeMounts:
+        - name: init-script
+          mountPath: /docker-entrypoint-initdb.d/init.sh
+          subPath: init.sh
+          readOnly: true
+        - name: postgres-data
+          mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: mirror-node-postgres-vol
+          hostPath:
+            path: /home/ubuntu/hedera-local-node/volumes/mirror-node-postgres
+            type: Directory
+        - name: init-script
+          configMap:
+            name: db-config-init-sh
+            items:
+            - key: "init.sh"
+              path: "init.sh"
+  volumeClaimTemplates:
+  - metadata:
+      name: postgres-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 1Gi
+      volumeName: postgres-data-pv

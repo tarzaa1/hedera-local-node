@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: minio
+spec:
+  serviceName: "minio"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: minio
+  template:
+    metadata:
+      labels:
+        app: minio
+    spec:
+      initContainers:
+      - name: clean-up
+        image: busybox
+        command: ['sh', '-c', 'rm -rf /minio-data/_data && mkdir -p /minio-data/_data']
+        volumeMounts:
+        - name: minio-data-vol
+          mountPath: /minio-data
+      containers:
+      - name: minio
+        image: minio/minio
+        command:
+          - "/bin/sh"
+          - "-c"
+          - "mkdir -p /data/hedera-streams && minio server /data --console-address ':9001'"
+        env:
+        # - name: MINIO_ROOT_USER
+        #   value: "minioadmin"
+        # - name: MINIO_ROOT_PASSWORD
+        #   value: "minioadmin"
+        - name: MINIO_ACCESS_KEY
+          value: "minioadmin"
+        - name: MINIO_SECRET_KEY
+          value: "minioadmin"
+        ports:
+        - containerPort: 9000
+        - containerPort: 9001
+        volumeMounts:
+        - name: minio-data
+          mountPath: /data
+      volumes:
+        - name: minio-data-vol
+          hostPath:
+            path: /home/ubuntu/hedera-local-node/volumes/minio-data
+            type: Directory
+  volumeClaimTemplates:
+  - metadata:
+      name: minio-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 1Gi 
+      volumeName: "minio-pv"

@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: prometheus-statefulset
+spec:
+  serviceName: "prometheus"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus
+  template:
+    metadata:
+      labels:
+        app: prometheus
+    spec:
+      initContainers:
+      - name: clean-up
+        image: busybox
+        command: ['sh', '-c', 'rm -rf /prometheus-data/_data && mkdir -p /prometheus-data/_data']
+        volumeMounts:
+        - name: prometheus-data
+          mountPath: /prometheus-data
+      containers:
+      - name: prometheus
+        image: prom/prometheus:v2.41.0
+        securityContext:
+            runAsUser: 0
+        volumeMounts:
+        - name: prometheus-data
+          mountPath: /prometheus
+          readOnly: false
+        - name: prometheus-config
+          mountPath: /etc/prometheus/prometheus.yml
+          subPath: prometheus.yml
+          readOnly: true
+        command:
+          - prometheus
+        args: 
+          - "--config.file=/etc/prometheus/prometheus.yml"
+          - "--storage.tsdb.path=/prometheus"
+          - "--web.console.libraries=/etc/prometheus/console_libraries"
+          - "--web.console.templates=/etc/prometheus/consoles"
+          - "--web.enable-lifecycle"
+        ports:
+        - containerPort: 9090
+      volumes:
+        - name: prometheus-data
+          hostPath:
+            path: /home/ubuntu/hedera-local-node/volumes/prometheus-data
+            type: Directory
+        - name: prometheus-config
+          configMap:
+            name: config-prometheus-yml
+            items:
+              - key: "prometheus.yml"
+                path: "prometheus.yml"
+        
+  volumeClaimTemplates:
+  - metadata:
+      name: prometheus-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 1Gi
+      volumeName: prometheus-data-pv

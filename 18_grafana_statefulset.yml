@@ -1,0 +1,113 @@
+# Added ubuntu@CLEVER-Shradda-work03:~/hedera-local-node/volumes/grafana-data/_data$ sudo chown -R 472:472 . to manage permissions
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: grafana-statefulset
+spec:
+  serviceName: "grafana"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      initContainers:
+      - name: clean-up
+        image: busybox
+        command: ['sh', '-c', 'rm -rf /grafana-data/_data && mkdir -p /grafana-data/_data && chmod 472 /grafana-data/_data']
+        volumeMounts:
+        - name: grafana-data
+          mountPath: /grafana-data        
+      containers:
+      - name: grafana
+        image: grafana/grafana:8.5.16
+        securityContext:
+          runAsNonRoot: true
+          runAsGroup: 0
+          runAsUser: 472 
+        volumeMounts:
+        - name: grafana-datasources
+          mountPath: /etc/grafana/provisioning/datasources
+          readOnly: false
+        - name: grafana-dashboard-hedera-node
+          mountPath: /etc/grafana/provisioning/dashboards/hedera-node
+          readOnly: false
+        - name: grafana-dashboard-json-rpc-relay
+          mountPath: /etc/grafana/provisioning/dashboards/json-rpc-relay
+          readOnly: false
+        - name: grafana-dashboard
+          mountPath: /etc/grafana/provisioning/dashboards
+          readOnly: false
+        - name: grafana
+          mountPath: /var/lib/grafana
+          readOnly: false
+        ports:
+        - containerPort: 3000
+      volumes:
+        - name: grafana-data
+          hostPath:
+            path: /home/ubuntu/hedera-local-node/volumes/grafana-data
+            type: Directory
+        - name: grafana-datasources
+          configMap: 
+            name: grafana-datasources
+            items: 
+              - key: "grafana_ds.yml"
+                path: "grafana_ds.yml"
+        - name: grafana-dashboard-hedera-node
+          configMap: 
+            name: grafana-dashboard-hedera-node
+            items: 
+              - key: "all-stats-prom.json"
+                path: "all-stats-prom.json"
+              - key: "arbitrary-stat-prom.json"
+                path: "arbitrary-stat-prom.json"
+              - key: "jasperdb-node-details-prom.json"
+                path: "jasperdb-node-details-prom.json"
+              - key: "mainnet-important-prom.json"
+                path: "mainnet-important-prom.json"
+              - key: "network-details-prom.json"
+                path: "network-details-prom.json"
+        - name: grafana-dashboard-json-rpc-relay
+          configMap: 
+            name: grafana-dashboard-json-rpc-relay
+            items: 
+              - key: "default-prom.json"
+                path: "default-prom.json"
+        - name: grafana-dashboard
+          configMap: 
+            name: grafana-provisioner-yaml
+            items: 
+              - key: "provisioner.yaml"
+                path: "provisioner.yaml"
+        
+  volumeClaimTemplates:
+  # - metadata:
+  #     name: grafana-datasources
+  #   spec:
+  #     accessModes: [ "ReadWriteOnce" ]
+  #     resources:
+  #       requests:
+  #         storage: 1Gi
+  #     volumeName: grafana-datasources-pv
+  # - metadata:
+  #     name: grafana-dashboard
+  #   spec:
+  #     accessModes: [ "ReadWriteOnce" ]
+  #     resources:
+  #       requests:
+  #         storage: 1Gi
+  #     volumeName: grafana-dashboard-pv
+  - metadata:
+      name: grafana
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 1Gi
+      volumeName: grafana-pv
+

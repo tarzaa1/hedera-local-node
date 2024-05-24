@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: haveged
+spec:
+  replicas: 1
+  serviceName: "haveged"
+  selector:
+    matchLabels:
+      app: haveged
+  template:
+    metadata:
+      labels:
+        app: haveged
+    spec:
+      nodeName: clever-shradda-work01
+      containers:
+      - name: haveged
+        image: gcr.io/hedera-registry/network-node-haveged:0.46.3
+        args: ["-d 16"]
+        resources:
+          limits:
+            memory: "64Mi"
+          requests:
+            memory: "32Mi"
+        securityContext:
+          privileged: true
+

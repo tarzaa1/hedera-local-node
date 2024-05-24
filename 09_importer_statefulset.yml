@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mirror-node-importer
+spec:
+  serviceName: "mirror-node-importer"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mirror-node-importer
+  template:
+    metadata:
+      labels:
+        app: mirror-node-importer
+    spec:
+      initContainers:
+      - name: check-pods-ready
+        image: bitnami/kubectl
+        command:
+        - 'sh'
+        - '-c'
+        - >
+          until kubectl get pods minio-0 -n default -o jsonpath='{.status.phase}' | grep Running && kubectl get pods mirror-node-db-0 -n default -o jsonpath='{.status.phase}' | grep Running; do echo waiting for pods; sleep 5; done
+      containers:
+      - name: mirror-node-importer
+        image: gcr.io/mirrornode/hedera-mirror-importer:0.98.0
+        env:
+        - name: HEDERA_MIRROR_IMPORTER_DB_HOST
+          value: "mirror-node-db.default.svc.cluster.local"
+        - name: SPRING_CONFIG_ADDITIONAL_LOCATION
+          value: "file:/usr/etc/hedera-mirror-importer/"
+        volumeMounts:
+        - name: config-importer-volume
+          mountPath: /usr/etc/hedera-mirror-importer/application.yml
+          subPath: application.yml
+          readOnly: true
+        - name: addressbook-volume
+          mountPath: /usr/etc/hedera-mirror-importer/local-dev-1-node.addressbook.f102.json.bin
+      volumes:
+        - name: config-importer-volume
+          configMap:
+            name: config-application-yml
+            items:
+              - key: "application.yml"
+                path: "application.yml"
+  volumeClaimTemplates:
+  - metadata:
+      name: addressbook-volume
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 1Gi  
+      volumeName: addressbook-volume-pv

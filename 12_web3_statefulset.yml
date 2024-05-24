@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mirror-node-web3
+spec:
+  serviceName: "mirror-node-web3"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mirror-node-web3
+  template:
+    metadata:
+      labels:
+        app: mirror-node-web3
+    spec:
+      initContainers:
+      - name: check-pods-ready
+        image: bitnami/kubectl
+        command:
+        - 'sh'
+        - '-c'
+        - >
+          until kubectl get pods mirror-node-importer-0 -n default -o jsonpath='{.status.phase}' | grep Running && kubectl get pods mirror-node-db-0 -n default -o jsonpath='{.status.phase}' | grep Running; do echo waiting for pods; sleep 5; done
+      containers:
+      - name: mirror-node-web3
+        image: gcr.io/mirrornode/hedera-mirror-web3:0.98.0
+        env:
+        - name: HEDERA_MIRROR_WEB3_DB_HOST
+          value: "mirror-node-db.default.svc.cluster.local"
+        - name: HEDERA_MIRROR_WEB3_EVM_NETWORK
+          value: "OTHER"
+        ports:
+        - containerPort: 8545  

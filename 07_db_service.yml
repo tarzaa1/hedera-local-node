@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mirror-node-db
+spec:
+  selector:
+    app: mirror-node-db
+  ports:
+    - name: port5432
+      protocol: TCP
+      port: 5432  
+      targetPort: 5432  
+  type: ClusterIP

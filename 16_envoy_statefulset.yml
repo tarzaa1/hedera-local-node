@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: envoy-statefulset
+spec:
+  serviceName: "envoy"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: envoy
+  template:
+    metadata:
+      labels:
+        app: envoy
+    spec:
+      containers:
+      - name: envoy
+        image: envoyproxy/envoy:v1.22.0
+        ports:
+        - containerPort: 50213
+        volumeMounts:
+        - name: envoy-data
+          mountPath: /etc/envoy/envoy.yaml
+          subPath: envoy.yaml
+          readOnly: true
+      volumes:
+        - name: envoy-data
+          configMap:
+            name: config-envoy-yaml
+            items:
+              - key: "envoy.yaml"
+                path: "envoy.yaml"
+  

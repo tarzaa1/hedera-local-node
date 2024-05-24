@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: relay-cache-statefulset
+spec:
+  serviceName: "relay-cache"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: relay-cache
+  template:
+    metadata:
+      labels:
+        app: relay-cache
+    spec:
+      containers:
+      - name: relay-cache   
+        image: redis:6-alpine
+        resources:
+          limits:
+            memory: "732Mi"
+          requests:
+            memory: "732Mi"
+        ports:
+        - containerPort: 6379
+        
+ 

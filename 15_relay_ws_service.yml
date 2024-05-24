@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: relay-ws
+spec:
+  selector:
+    app: relay-ws
+  ports:
+  - name: port8546
+    protocol: TCP
+    port: 8546
+    targetPort: 8546
+    nodePort: 31054
+  - name: port8547
+    protocol: TCP
+    port: 8547
+    targetPort: 8547
+    nodePort: 31047
+  type: NodePort

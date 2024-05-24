@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: record-sidecar-uploader
+spec:
+  serviceName: "record-sidecar-uploader"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: record-sidecar-uploader
+  template:
+    metadata:
+      labels:
+        app: record-sidecar-uploader
+    spec:
+      nodeName: clever-shradda-work01
+      restartPolicy: Always
+      initContainers:
+      - name: check-pods-ready
+        image: bitnami/kubectl
+        command:
+        - 'sh'
+        - '-c'
+        - >
+          until kubectl get pods minio-0 -n default -o jsonpath='{.status.phase}' | grep Running; do echo waiting for pods; sleep 5; done
+      containers:
+      - name: record-sidecar-uploader
+        image: gcr.io/hedera-registry/uploader-mirror:0.7.0
+        securityContext:
+          runAsUser: 0
+        env:
+        - name: DEBUG
+          value: "true"
+        - name: REAPER_ENABLE
+          value: "true"
+        - name: REAPER_MIN_KEEP
+          value: "1"
+        - name: REAPER_INTERVAL
+          value: "5"
+        - name: S3_ENABLE
+          value: "true"
+        - name: GCS_ENABLE
+          value: "false"
+        - name: SIG_REQUIRE
+          value: "false"
+        - name: SIG_PRIORITIZE
+          value: "false"
+        - name: STREAM_EXTENSION
+          value: "rcd.gz"
+        - name: BUCKET_NAME
+          value: "hedera-streams"
+        - name: BUCKET_PATH
+          value: "recordstreams/record0.0.3/sidecar"
+        - name: S3_ACCESS_KEY
+          value: "minioadmin"
+        - name: S3_SECRET_KEY
+          value: "minioadmin"
+        volumeMounts:
+        - name: record-sidecar-uploader-volume
+          mountPath: /sidecar-files
+        command:
+          - "/usr/bin/env"
+          - "python3.7"
+          - "/usr/local/bin/mirror.py"
+          - "--linux"
+          - "--watch-directory"
+          - "/sidecar-files"
+          - "--s3-endpoint"
+          - "http://minio.default.svc.cluster.local:9000"
+          - "--debug"
+  volumeClaimTemplates:
+  - metadata:
+      name: record-sidecar-uploader-volume
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 1Gi
+      volumeName: record-sidecar-uploader-pv

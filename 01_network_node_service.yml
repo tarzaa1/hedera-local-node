@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: network-node
+spec:
+  selector:
+    app: network-node
+  ports:
+  - name: port50211
+    protocol: TCP
+    port: 50211
+    targetPort: 50211
+    nodePort: 31011
+  - name: port50212
+    protocol: TCP
+    port: 50212
+    targetPort: 50212
+    nodePort: 31021
+  - name: port9999
+    protocol: TCP
+    port: 9999
+    targetPort: 9999
+    nodePort: 31099
+  type: NodePort

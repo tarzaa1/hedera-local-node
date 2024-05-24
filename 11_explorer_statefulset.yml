@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: hedera-explorer
+spec:
+  serviceName: "hedera-explorer"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hedera-explorer
+  template:
+    metadata:
+      labels:
+        app: hedera-explorer
+    spec:
+      containers:
+      - name: hedera-explorer
+        image: gcr.io/hedera-registry/hedera-mirror-node-explorer:24.3.0
+        ports:
+        - containerPort: 8080
+        # env:
+        # - name: DOCKER_LOCAL_MIRROR_NODE_MENU_NAME
+        #   value: LOCALNET
+        # - name: DOCKER_LOCAL_MIRROR_NODE_URL
+        #   value: http://127.0.0.1:5551/
+        envFrom: 
+           - configMapRef: 
+               name: explorer-config
+  

@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mirror-node-rest
+spec:
+  serviceName: "mirror-node-rest"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mirror-node-rest
+  template:
+    metadata:
+      labels:
+        app: mirror-node-rest
+    spec:
+      initContainers:
+      - name: check-pods-ready
+        image: bitnami/kubectl
+        command:
+        - 'sh'
+        - '-c'
+        - >
+          until kubectl get pods mirror-node-importer-0 -n default -o jsonpath='{.status.phase}' | grep Running && kubectl get pods mirror-node-db-0 -n default -o jsonpath='{.status.phase}' | grep Running; do echo waiting for pods; sleep 5; done
+      containers:
+      - name: mirror-node-rest
+        image: gcr.io/mirrornode/hedera-mirror-rest:0.98.0
+        env:
+        - name: HEDERA_MIRROR_REST_DB_HOST
+          value: "mirror-node-db.default.svc.cluster.local"
+        ports:
+        - containerPort: 5551  
+ 

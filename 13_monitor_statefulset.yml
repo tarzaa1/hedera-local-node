@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mirror-node-monitor
+spec:
+  serviceName: "mirror-node-monitor"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mirror-node-monitor
+  template:
+    metadata:
+      labels:
+        app: mirror-node-monitor
+    spec:
+      initContainers:
+      - name: check-pods-ready
+        image: bitnami/kubectl
+        command:
+        - 'sh'
+        - '-c'
+        - >
+          until kubectl get pods mirror-node-grpc-0 -n default -o jsonpath='{.status.phase}' | grep Running && kubectl get pods mirror-node-rest-0 -n default -o jsonpath='{.status.phase}' | grep Running && kubectl get pods network-node-statefulset-0 -n default -o jsonpath='{.status.phase}' | grep Running; do echo waiting for pods; sleep 5; done
+      containers:
+      - name: mirror-node-monitor
+        image: gcr.io/mirrornode/hedera-mirror-monitor:0.98.0
+        env:
+        - name: SPRING_CONFIG_ADDITIONAL_LOCATION
+          value: "file:/usr/etc/hedera-mirror-monitor/"
+        ports:
+        - containerPort: 8082  
+        volumeMounts:
+        - name: config-monitor-volume
+          mountPath: /usr/etc/hedera-mirror-monitor/application.yml
+          subPath: application.yml
+          readOnly: true
+      volumes:
+        - name: config-monitor-volume
+          configMap:
+            name: config-application-yml
+            items:
+              - key: "application.yml"
+                path: "application.yml"

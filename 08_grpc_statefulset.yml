@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mirror-node-grpc
+spec:
+  serviceName: "mirror-node-grpc"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mirror-node-grpc
+  template:
+    metadata:
+      labels:
+        app: mirror-node-grpc
+    spec:
+      initContainers:
+      - name: check-pods-ready
+        image: bitnami/kubectl
+        command:
+        - 'sh'
+        - '-c'
+        - >
+          until kubectl get pods network-node-statefulset-0 -n default -o jsonpath='{.status.phase}' | grep Running && kubectl get pods mirror-node-db-0 -n default -o jsonpath='{.status.phase}' | grep Running; do echo waiting for pods; sleep 5; done
+      containers:
+      - name: mirror-node-grpc
+        image: gcr.io/mirrornode/hedera-mirror-grpc:0.98.0
+        env:
+        - name: HEDERA_MIRROR_GRPC_DB_HOST
+          value: "mirror-node-db.default.svc.cluster.local"
+        - name: SPRING_CONFIG_ADDITIONAL_LOCATION
+          value: "file:/usr/etc/hedera-mirror-grpc/"
+        ports:
+        - containerPort: 5600
+        volumeMounts:
+        - name: config-grpc-volume
+          mountPath: /usr/etc/hedera-mirror-grpc/application.yml
+          subPath: application.yml
+          readOnly: true
+      volumes:
+        - name: config-grpc-volume
+          configMap:
+            name: config-application-yml
+            items:
+              - key: "application.yml"
+                path: "application.yml"
+  
