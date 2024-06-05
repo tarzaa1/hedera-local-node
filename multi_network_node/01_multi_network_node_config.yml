@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: multi-network-node-config-txt-volume
+data:
+  config.txt: |
+    ###############################################################################################
+    # Configuration file, for automatically running multiple instances
+    ###############################################################################################
+    swirld, hedera
+    app, HederaNode.jar
+    address, 0, n0, node0, 1, network-node-statefulset-0.network-node.default.svc.cluster.local, 50111, network-node-statefulset-0.network-node.default.svc.cluster.local, 50111, 0.0.3
+    address, 1, n1, node1, 1, network-node-1-0.network-node-1.default.svc.cluster.local, 50111, network-node-1-0.network-node-1.default.svc.cluster.local, 50111, 0.0.4
+    address, 2, n2, node2, 1, network-node-2-0.network-node-2.default.svc.cluster.local, 50111, network-node-2-0.network-node-2.default.svc.cluster.local, 50111, 0.0.5
+    nextNodeId, 5
