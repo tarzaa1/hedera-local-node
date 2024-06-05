@@ -1,0 +1,207 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: network-node-1
+spec:
+  serviceName: network-node-1
+  replicas: 1
+  selector:
+    matchLabels:
+      app: network-node-1
+  template:
+    metadata:
+      labels:
+        app: network-node-1
+    spec:
+      nodeName: clever-shradda-work02
+      initContainers:
+      - name: clean-up
+        image: busybox
+        command: ['sh', '-c', 'rm -rf /network-logs/*']
+        volumeMounts:
+        - name: network-logs-volume
+          mountPath: /network-logs
+      - name: check-pods-ready
+        image: bitnami/kubectl
+        command:
+        - 'sh'
+        - '-c'
+        - >
+          until kubectl get pods haveged-1-0 -n default -o jsonpath='{.status.phase}' | grep Running && kubectl get pods record-streams-uploader-1-0 -n default -o jsonpath='{.status.phase}' | grep Running && kubectl get pods network-node-statefulset-0 -n default -o jsonpath='{.status.phase}' | grep Running; do echo waiting for pods; sleep 5; done
+      containers:
+        - name: network-node-1
+          image: gcr.io/hedera-registry/main-network-node:0.46.3
+          securityContext:
+            runAsUser: 0
+          imagePullPolicy: Always
+          envFrom: 
+           - configMapRef: 
+               name: network-node-config
+          ports:
+            - containerPort: 50211
+            - containerPort: 50212
+          # resources:
+          #   limits:
+          #     memory: "8gb"
+          readinessProbe:
+            exec:
+              command:
+                - "grep"
+                - "-E"
+                - "Now current platform status = ACTIVE|OBSERVING|CHECKING"
+                - "/opt/hgcapp/services-hedera/HapiApp2.0/output/hgcaa.log"
+            # initialDelaySeconds: 10
+            # periodSeconds: 30
+            # timeoutSeconds: 10
+            # failureThreshold: 10
+            initialDelaySeconds: 10
+            periodSeconds: 50
+            timeoutSeconds: 20
+          volumeMounts:
+            - name: account-balance-volume
+              mountPath: "/opt/hgcapp/accountBalances"
+            - name: record-steams-volume
+              mountPath: "/opt/hgcapp/recordStreams"
+            - name: config-volume
+              mountPath: "/opt/hgcapp/services-hedera/HapiApp2.0/data/config"
+              readOnly: true
+            - name: output-volume
+              mountPath: "/opt/hgcapp/services-hedera/HapiApp2.0/output"
+            - name: keys-volume
+              mountPath: "/opt/hgcapp/services-hedera/HapiApp2.0/data/keys"
+              readOnly: true
+            - name: stats-volume
+              mountPath: "/opt/hgcapp/services-hedera/HapiApp2.0/data/stats"
+            - name: config-txt-volume
+              mountPath: "/opt/hgcapp/services-hedera/HapiApp2.0/config.txt"
+              subPath: config.txt
+              readOnly: true
+            - name: settings-txt-volume
+              mountPath: "/opt/hgcapp/services-hedera/HapiApp2.0/settings.txt"
+              subPath: settings.txt
+              readOnly: true
+            - name: log4j2-xml-volume
+              mountPath: "/opt/hgcapp/services-hedera/HapiApp2.0/log4j2.xml"
+              subPath: log4j2.xml
+              readOnly: true
+            - name: hedera-crt-volume-secret
+              mountPath: "/opt/hgcapp/services-hedera/HapiApp2.0/hedera.crt"
+              subPath: hedera.crt
+              readOnly: true
+            - name: hedera-key-volume
+              mountPath: "/opt/hgcapp/services-hedera/HapiApp2.0/hedera.key"
+              subPath: hedera.key
+              readOnly: true
+            - name: record-parser-volume-parser-sh
+              mountPath: "/opt/hgcapp/recordParser"
+              readOnly: true
+            - name: record-parser-volume-parser-java
+              mountPath: "/opt/hgcapp/recordParser/src"
+              readOnly: true
+      volumes:
+        - name: network-logs-volume
+          hostPath:
+            path: /home/ubuntu/hedera-local-node/network-logs
+            type: Directory
+        - name: config-volume
+          configMap: 
+            name: network-node-config-files
+            items: 
+              - key: "api-permission.properties"
+                path: "api-permission.properties" 
+              - key: "application.properties"
+                path: "application.properties"
+              - key: "bootstrap.properties"
+                path: "bootstrap.properties"
+              - key: "evm-addresses-blocklist.csv"
+                path: "evm-addresses-blocklist.csv"
+        - name: keys-volume
+          secret:
+            secretName: hedera-network-node-data-keys
+            items:
+              - key: "private-node0.pfx"
+                path: "private-node0.pfx"
+              - key: "private-node1.pfx"
+                path: "private-node1.pfx"
+              - key: "private-node2.pfx"
+                path: "private-node2.pfx"
+              - key: "private-node3.pfx"
+                path: "private-node3.pfx" 
+              - key: "public.pfx"
+                path: "public.pfx"
+        - name: config-txt-volume
+          configMap: 
+            name: multi-network-node-config-txt-volume
+            items: 
+              - key: "config.txt"
+                path: "config.txt" 
+        - name: settings-txt-volume
+          configMap: 
+            name: network-node-settings-txt-volume
+            items:  
+              - key: "settings.txt"
+                path: "settings.txt"
+        - name: log4j2-xml-volume
+          configMap: 
+            name: network-node-log4j2-xml-volume
+            items: 
+              - key: "log4j2.xml"
+                path: "log4j2.xml"
+        - name: hedera-crt-volume-secret
+          secret:
+            secretName: hedera-crt-secret
+            items:
+              - key: "hedera.crt"
+                path: "hedera.crt"
+        - name: hedera-key-volume
+          secret:
+            secretName: hedera-key-secret
+            items:
+              - key: "hedera.key"
+                path: "hedera.key"
+        - name: record-parser-volume-parser-sh
+          configMap:
+            name: network-node-parser-sh-volume
+            items:
+              - key: "parser.sh"
+                path: "parser.sh"
+        - name: record-parser-volume-parser-java
+          configMap:
+            name: network-node-parser-java-volume
+            items:
+              - key: "Parser.java"
+                path: "Parser.java"
+  volumeClaimTemplates:
+    - metadata:
+        name: account-balance-volume
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
+        volumeName: "account-balance-pv-01"
+    - metadata:
+        name: record-steams-volume
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
+        volumeName: "record-steams-pv-01"
+    - metadata:
+        name: output-volume
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
+        volumeName: "output-volume-pv-01"
+    - metadata:
+        name: stats-volume
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
+        volumeName: "stats-volume-pv-01"
+      

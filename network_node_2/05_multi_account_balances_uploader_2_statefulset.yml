@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: account-balances-uploader-2
+spec:
+  serviceName: "account-balances-uploader-2"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: account-balances-uploader-2
+  template:
+    metadata:
+      labels:
+        app: account-balances-uploader-2
+    spec:
+      nodeName: clever-shradda-work03
+      restartPolicy: Always
+      initContainers:
+      - name: check-pods-ready
+        image: bitnami/kubectl
+        command:
+        - 'sh'
+        - '-c'
+        - >
+          until kubectl get pods minio-0 -n default -o jsonpath='{.status.phase}' | grep Running; do echo waiting for pods; sleep 5; done
+      containers:
+      - name: account-balances-uploader-2
+        image: gcr.io/hedera-registry/uploader-mirror:0.7.0
+        securityContext:
+          runAsUser: 0
+        env:
+        - name: DEBUG
+          value: "true"
+        - name: REAPER_ENABLE
+          value: "true"
+        - name: REAPER_MIN_KEEP
+          value: "1"
+        - name: REAPER_INTERVAL
+          value: "5"
+        - name: S3_ENABLE
+          value: "true"
+        - name: GCS_ENABLE
+          value: "false"
+        - name: SIG_REQUIRE
+          value: "true"
+        - name: SIG_PRIORITIZE
+          value: "true"
+        - name: SIG_EXTENSION
+          value: "pb_sig"
+        - name: STREAM_EXTENSION
+          value: "pb"
+        - name: BUCKET_NAME
+          value: "hedera-streams"
+        - name: BUCKET_PATH
+          value: "accountBalances/balance0.0.5"
+        - name: S3_ACCESS_KEY
+          value: "minioadmin"
+        - name: S3_SECRET_KEY
+          value: "minioadmin"
+        volumeMounts:
+        - name: balances-volume
+          mountPath: /balances
+        command:
+          - "/usr/bin/env"
+          - "python3.7"
+          - "/usr/local/bin/mirror.py"
+          - "--linux"
+          - "--watch-directory"
+          - "/balances"
+          - "--s3-endpoint"
+          - "http://minio.default.svc.cluster.local:9000"
+          - "--debug"
+  volumeClaimTemplates:
+  - metadata:
+      name: balances-volume
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 1Gi
+      volumeName: "balances-pv-02"

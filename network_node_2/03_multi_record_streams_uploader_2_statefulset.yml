@@ -1,0 +1,88 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: record-streams-uploader-2
+spec:
+  replicas: 1
+  serviceName: "record-streams-uploader-2"
+  selector:
+    matchLabels:
+      app: record-streams-uploader-2
+  template:
+    metadata:
+      labels:
+        app: record-streams-uploader-2
+    spec:
+      nodeName: clever-shradda-work03
+      restartPolicy: Always
+      initContainers:
+      - name: check-pods-ready
+        image: bitnami/kubectl
+        command:
+        - 'sh'
+        - '-c'
+        - >
+          until kubectl get pods minio-0 -n default -o jsonpath='{.status.phase}' | grep Running; do echo waiting for pods; sleep 5; done
+      containers:
+      - name: record-streams-uploader-2
+        image: gcr.io/hedera-registry/uploader-mirror:0.7.0
+        securityContext:
+          runAsUser: 0
+        envFrom: 
+           - configMapRef: 
+               name: record-streams-uploader-config
+        env:
+        - name: DEBUG
+          value: "true"
+        - name: REAPER_ENABLE
+          value: "true"
+        - name: REAPER_MIN_KEEP
+          value: "1"
+        - name: REAPER_INTERVAL
+          value: "5"
+        - name: S3_ENABLE
+          value: "true"
+        - name: GCS_ENABLE
+          value: "false"
+        - name: SIG_REQUIRE
+          value: "true"
+        - name: SIG_PRIORITIZE
+          value: "true"
+        - name: SIG_EXTENSION
+          value: "rcd_sig"
+        # - name: STREAM_EXTENSION
+        #   value: "rcd.gz"
+        - name: BUCKET_NAME
+          value: "hedera-streams"
+        - name: BUCKET_PATH
+          value: "recordstreams/record0.0.5"
+        - name: S3_ACCESS_KEY
+          value: "minioadmin"
+        - name: S3_SECRET_KEY
+          value: "minioadmin"
+        volumeMounts:
+        - name: records-volume
+          mountPath: "/records"
+        command:
+          - "/usr/bin/env"
+          - "python3.7"
+          - "/usr/local/bin/mirror.py"
+          - "--linux"
+          - "--watch-directory"
+          - "/records"
+          - "--s3-endpoint"
+          - "http://minio.default.svc.cluster.local:9000"
+          - "--debug"
+  volumeClaimTemplates:
+  - metadata:
+      name: records-volume
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 1Gi 
+      volumeName: "records-pv-02"
+  # podManagementPolicy: "Parallel"
+  updateStrategy:
+    type: "RollingUpdate"
+  

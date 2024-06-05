@@ -1,0 +1,50 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: account-balance-pv-01
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: /home/ubuntu/hedera-local-node/network-logs/node/accountBalances
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: record-steams-pv-01
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: /home/ubuntu/hedera-local-node/network-logs/node/recordStreams
+---
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: output-volume-pv-01
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: /home/ubuntu/hedera-local-node/network-logs/node/logs
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: stats-volume-pv-01
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: /home/ubuntu/hedera-local-node/network-logs/node/stats
+
+
