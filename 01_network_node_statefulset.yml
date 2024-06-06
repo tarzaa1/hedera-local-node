@@ -37,22 +37,6 @@ spec:
           envFrom: 
            - configMapRef: 
                name: network-node-config
-          # env:
-          #   - name: JAVA_HEAP_MIN
-          #     valueFrom:
-          #       configMapKeyRef:
-          #         name: network-node-config
-          #         key: PLATFORM_JAVA_HEAP_MIN
-          #   - name: JAVA_HEAP_MAX
-          #     valueFrom:
-          #       configMapKeyRef:
-          #         name: network-node-config
-          #         key: PLATFORM_JAVA_HEAP_MAX
-          #   - name: JAVA_OPTS
-          #     valueFrom:
-          #       configMapKeyRef:
-          #         name: network-node-config
-          #         key: PLATFORM_JAVA_OPTS
           ports:
             - containerPort: 50211
             - containerPort: 50212
@@ -141,7 +125,7 @@ spec:
                 path: "public.pfx"
         - name: config-txt-volume
           configMap: 
-            name: network-node-config-txt-volume
+            name: multi-network-node-config-txt-volume
             items: 
               - key: "config.txt"
                 path: "config.txt" 
@@ -198,14 +182,6 @@ spec:
           requests:
             storage: 1Gi
         volumeName: "record-steams-pv"
-    # - metadata:
-    #     name: config-volume
-    #   spec:
-    #     accessModes: ["ReadWriteOnce"]
-    #     resources:
-    #       requests:
-    #         storage: 1Gi
-    #     volumeName: "config-volume-pv"
     - metadata:
         name: output-volume
       spec:
@@ -214,14 +190,6 @@ spec:
           requests:
             storage: 1Gi
         volumeName: "output-volume-pv"
-    # - metadata:
-    #     name: keys-volume
-    #   spec:
-    #     accessModes: ["ReadWriteOnce"]
-    #     resources:
-    #       requests:
-    #         storage: 1Gi
-    #     volumeName: "keys-volume-pv"
     - metadata:
         name: stats-volume
       spec:
