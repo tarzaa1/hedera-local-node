@@ -12,4 +12,5 @@ data:
     address, 0, n0, node0, 1, network-node-statefulset-0.network-node.default.svc.cluster.local, 50111, network-node-statefulset-0.network-node.default.svc.cluster.local, 50111, 0.0.3
     address, 1, n1, node1, 1, network-node-1-0.network-node-1.default.svc.cluster.local, 50111, network-node-1-0.network-node-1.default.svc.cluster.local, 50111, 0.0.4
     address, 2, n2, node2, 1, network-node-2-0.network-node-2.default.svc.cluster.local, 50111, network-node-2-0.network-node-2.default.svc.cluster.local, 50111, 0.0.5
+    address, 3, n3, node3, 1, network-node-3-0.network-node-3.default.svc.cluster.local, 50111, network-node-3-0.network-node-3.default.svc.cluster.local, 50111, 0.0.6
     nextNodeId, 5
