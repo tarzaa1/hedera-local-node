@@ -15,6 +15,12 @@ spec:
     spec:
       nodeName: clever-shradda-work03
       initContainers:
+      - name: clean-up
+        image: busybox
+        command: ['sh', '-c', 'rm -rf /network-logs/*']
+        volumeMounts:
+        - name: network-logs-volume
+          mountPath: /network-logs
       - name: check-pods-ready
         image: bitnami/kubectl
         command:
@@ -93,10 +99,10 @@ spec:
               mountPath: "/opt/hgcapp/recordParser/src"
               readOnly: true
       volumes:
-        # - name: network-logs-volume
-        #   hostPath:
-        #     path: /home/ubuntu/hedera-local-node/network-logs
-        #     type: Directory
+        - name: network-logs-volume
+          hostPath:
+            path: /home/ubuntu/hedera-local-node/network-logs
+            type: Directory
         - name: config-volume
           configMap: 
             name: network-node-config-files
