@@ -40,6 +40,7 @@ spec:
           ports:
             - containerPort: 50211
             - containerPort: 50212
+            - containerPort: 50111
           # resources:
           #   limits:
           #     memory: "8gb"
