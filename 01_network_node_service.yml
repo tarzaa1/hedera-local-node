@@ -21,4 +21,9 @@ spec:
     port: 9999
     targetPort: 9999
     nodePort: 31099
+  - name: port50111
+    protocol: TCP
+    port: 50111
+    targetPort: 50111
+    nodePort: 31222
   type: NodePort

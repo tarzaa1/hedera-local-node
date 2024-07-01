@@ -16,4 +16,9 @@ spec:
     port: 50212
     targetPort: 50212
     nodePort: 31112
+  - name: port50111
+    protocol: TCP
+    port: 50111
+    targetPort: 50111
+    nodePort: 31223
   type: NodePort
