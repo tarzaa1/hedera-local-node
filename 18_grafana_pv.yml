@@ -1,34 +1,6 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: grafana-datasources-pv
-spec:
-  capacity:
-    storage: 1Gi
-  accessModes:
-    - ReadWriteOnce
-  hostPath:
-    path: /home/ubuntu/hedera-local-node/compose-network/grafana/datasources
-
----
-
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: grafana-dashboard-pv
-spec:
-  capacity:
-    storage: 1Gi
-  accessModes:
-    - ReadWriteOnce
-  hostPath:
-    path: /home/ubuntu/hedera-local-node/compose-network/grafana/dashboards
-
----
-
-apiVersion: v1
-kind: PersistentVolume
-metadata:
   name: grafana-pv
 spec:
   capacity:
