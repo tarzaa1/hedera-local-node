@@ -25,18 +25,6 @@ spec:
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: config-volume-pv
-spec:
-  capacity:
-    storage: 1Gi
-  accessModes:
-    - ReadWriteOnce
-  hostPath:
-    path: /home/ubuntu/hedera-local-node/compose-network/network-node/data/config
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
   name: output-volume-pv
 spec:
   capacity:
@@ -45,18 +33,6 @@ spec:
     - ReadWriteOnce
   hostPath:
     path: /home/ubuntu/hedera-local-node/network-logs/node/logs
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: keys-volume-pv
-spec:
-  capacity:
-    storage: 1Gi
-  accessModes:
-    - ReadWriteOnce
-  hostPath:
-    path: /home/ubuntu/hedera-local-node/compose-network/network-node/data/keys
 ---
 apiVersion: v1
 kind: PersistentVolume
