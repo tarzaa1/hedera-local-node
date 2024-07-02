@@ -27,7 +27,7 @@ spec:
         - 'sh'
         - '-c'
         - >
-          until kubectl get pods haveged-1-0 -n default -o jsonpath='{.status.phase}' | grep Running && kubectl get pods record-streams-uploader-1-0 -n default -o jsonpath='{.status.phase}' | grep Running && kubectl get pods network-node-statefulset-0 -n default -o jsonpath='{.status.phase}' | grep Running; do echo waiting for pods; sleep 5; done
+          until kubectl get pods haveged-1-0 -n default -o jsonpath='{.status.phase}' | grep Running && kubectl get pods record-streams-uploader-0 -n default -o jsonpath='{.status.phase}' | grep Running && kubectl get pods network-node-statefulset-0 -n default -o jsonpath='{.status.phase}' | grep Running; do echo waiting for pods; sleep 5; done
       containers:
         - name: network-node-1
           image: gcr.io/hedera-registry/main-network-node:0.46.3
@@ -41,6 +41,7 @@ spec:
             - containerPort: 50211
             - containerPort: 50212
             - containerPort: 50111
+            - containerPort: 9999
           # resources:
           #   limits:
           #     memory: "8gb"
