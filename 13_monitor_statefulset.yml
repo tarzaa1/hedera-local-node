@@ -20,7 +20,7 @@ spec:
         - 'sh'
         - '-c'
         - >
-          until kubectl get pods mirror-node-grpc-0 -n default -o jsonpath='{.status.phase}' | grep Running && kubectl get pods mirror-node-rest-0 -n default -o jsonpath='{.status.phase}' | grep Running && kubectl get pods network-node-statefulset-0 -n default -o jsonpath='{.status.phase}' | grep Running; do echo waiting for pods; sleep 5; done
+          until kubectl get pods mirror-node-grpc-0 -n default -o jsonpath='{.status.phase}' | grep Running && kubectl get pods mirror-node-rest-0 -n default -o jsonpath='{.status.phase}' | grep Running && kubectl get pods network-node-0-0 -n default -o jsonpath='{.status.phase}' | grep Running; do echo waiting for pods; sleep 5; done
       containers:
       - name: mirror-node-monitor
         image: gcr.io/mirrornode/hedera-mirror-monitor:0.98.0
