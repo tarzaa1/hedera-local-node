@@ -27,7 +27,7 @@ spec:
         - 'sh'
         - '-c'
         - >
-          until kubectl get pods haveged-1-0 -n default -o jsonpath='{.status.phase}' | grep Running && kubectl get pods record-streams-uploader-0 -n default -o jsonpath='{.status.phase}' | grep Running && kubectl get pods network-node-statefulset-0 -n default -o jsonpath='{.status.phase}' | grep Running; do echo waiting for pods; sleep 5; done
+          until kubectl get pods haveged-1-0 -n default -o jsonpath='{.status.phase}' | grep Running && kubectl get pods record-streams-uploader-0 -n default -o jsonpath='{.status.phase}' | grep Running && kubectl get pods network-node-0-0 -n default -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}' | grep True; do echo waiting for pods; sleep 5; done
       containers:
         - name: network-node-1
           image: gcr.io/hedera-registry/main-network-node:0.46.3
@@ -133,7 +133,7 @@ spec:
                 path: "public.pfx"
         - name: config-txt-volume
           configMap: 
-            name: multi-network-node-config-txt-volume
+            name: network-node-1-config-txt-volume
             items: 
               - key: "config.txt"
                 path: "config.txt" 
