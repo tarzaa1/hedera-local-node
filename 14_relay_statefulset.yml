@@ -20,7 +20,7 @@ spec:
         - 'sh'
         - '-c'
         - >
-          until kubectl get pods mirror-node-rest-0 -n default -o jsonpath='{.status.phase}' | grep Running && kubectl get pods network-node-statefulset-0 -n default -o jsonpath='{.status.phase}' | grep Running; do echo waiting for pods; sleep 5; done
+          until kubectl get pods mirror-node-rest-0 -n default -o jsonpath='{.status.phase}' | grep Running && kubectl get pods network-node-0-0 -n default -o jsonpath='{.status.phase}' | grep Running; do echo waiting for pods; sleep 5; done
       containers:
       - name: json-rpc-relay
         image: ghcr.io/hashgraph/hedera-json-rpc-relay:0.42.0
@@ -31,7 +31,7 @@ spec:
             memory: "732Mi"
         env:
         # - name: HEDERA_NETWORK
-        #   value: '{"network-node-statefulset-0.network-node.default.svc.cluster.local:50211":"0.0.3"}'
+        #   value: '{"network-node-0-0.network-node.default.svc.cluster.local:50211":"0.0.3"}'
         # - name: OPERATOR_ID_MAIN
         #   value: "0.0.2"
         # - name: OPERATOR_KEY_MAIN
