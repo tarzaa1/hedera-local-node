@@ -13,7 +13,6 @@ spec:
       labels:
         app: mirror-node-db
     spec:
-      nodeName: clever-shradda-work01
       restartPolicy: Always
       terminationGracePeriodSeconds: 120
       initContainers:
