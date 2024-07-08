@@ -8,4 +8,4 @@ spec:
   accessModes:
     - ReadWriteOnce
   hostPath:
-    path: /home/ubuntu/hedera-local-node/compose-network/mirror-node/addressBook.multinode.bin
+    path: /home/ubuntu/hedera-local-node/compose-network/mirror-node/modified_addressBook.multinode.bin
