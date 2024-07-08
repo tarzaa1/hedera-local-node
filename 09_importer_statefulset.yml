@@ -52,4 +52,4 @@ spec:
       resources:
         requests:
           storage: 1Gi  
-      volumeName: addressbook-volume-pv
+      volumeName: addressbook-volume-multi-pv
