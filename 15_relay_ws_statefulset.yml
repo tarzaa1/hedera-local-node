@@ -20,7 +20,7 @@ spec:
         - 'sh'
         - '-c'
         - >
-          until kubectl get pods mirror-node-rest-0 -n default -o jsonpath='{.status.phase}' | grep Running && kubectl get pods network-node-0-0 -n default -o jsonpath='{.status.phase}' | grep Running; do echo waiting for pods; sleep 5; done
+          until kubectl get pods mirror-node-rest-0 -n default -o jsonpath='{.status.phase}' | grep Running && kubectl get pods network-node-0-0 -n default -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}' | grep True; do echo waiting for pods; sleep 5; done
       containers:
       - name: relay-ws
         image: ghcr.io/hashgraph/hedera-json-rpc-relay:0.42.0
