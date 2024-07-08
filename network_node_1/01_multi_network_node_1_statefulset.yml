@@ -14,6 +14,7 @@ spec:
         app: network-node-1
     spec:
       nodeName: clever-shradda-work02
+      hostNetwork: true
       initContainers:
       - name: clean-up
         image: busybox
@@ -52,13 +53,10 @@ spec:
                 - "-E"
                 - "Now current platform status = ACTIVE|OBSERVING|CHECKING"
                 - "/opt/hgcapp/services-hedera/HapiApp2.0/output/hgcaa.log"
-            # initialDelaySeconds: 10
-            # periodSeconds: 30
-            # timeoutSeconds: 10
-            # failureThreshold: 10
             initialDelaySeconds: 10
-            periodSeconds: 50
-            timeoutSeconds: 20
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 10
           volumeMounts:
             - name: account-balance-volume
               mountPath: "/opt/hgcapp/accountBalances"
@@ -133,7 +131,7 @@ spec:
                 path: "public.pfx"
         - name: config-txt-volume
           configMap: 
-            name: network-node-1-config-txt-volume
+            name: network-node-config-txt-multi-volume
             items: 
               - key: "config.txt"
                 path: "config.txt" 
