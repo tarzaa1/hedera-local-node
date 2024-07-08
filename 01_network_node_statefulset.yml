@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: network-node-statefulset
+  name: network-node-0
 spec:
   serviceName: network-node
   replicas: 1
@@ -14,6 +14,7 @@ spec:
         app: network-node
     spec:
       nodeName: clever-shradda-work01
+      hostNetwork: true
       initContainers:
       - name: clean-up
         image: busybox
@@ -47,11 +48,12 @@ spec:
               command:
                 - "grep"
                 - "-E"
-                - "Now current platform status = ACTIVE|Hedera - Hederanode#0 is ACTIVE"
+                - "Now current platform status = ACTIVE|OBSERVING|CHECKING"
                 - "/opt/hgcapp/services-hedera/HapiApp2.0/output/hgcaa.log"
             initialDelaySeconds: 10
-            periodSeconds: 50
-            timeoutSeconds: 20
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 10
           volumeMounts:
             - name: account-balance-volume
               mountPath: "/opt/hgcapp/accountBalances"
@@ -126,7 +128,7 @@ spec:
                 path: "public.pfx"
         - name: config-txt-volume
           configMap: 
-            name: multi-network-node-config-txt-volume
+            name: network-node-config-txt-multi-volume
             items: 
               - key: "config.txt"
                 path: "config.txt" 
