@@ -58,11 +58,11 @@ kubectl delete configmaps --all
 
 - In file `/hedera-local-node/01_network_node_statefulset.yml`, point configmap `config-txt-volume` to use configmap `network-node-config-txt-multi-volume`. To do that, replace `network-node-config-txt-volume` with `network-node-config-txt-multi-volume` on line 130 in `01_network_node_statefulset.yml`. Do the same for `network_node_1/01_multi_network_node_1_statefulset.yml` and `network_node_2/01_multi_network_node_2_statefulset.yml`.
 
-- In configmap `network-node-config-txt-multi-volume` (in `/hedera-local-node/multi_network_node/01_multi_network_node_config.yml`) update the IP address with the IP address of the worker-1, worker-2, worker-3 of the kubernetes cluster (on which network-node-0 is supposed to run).
+- In configmap `network-node-config-txt-multi-volume` (in `/hedera-local-node/multi_network_node/01_multi_network_node_config.yml`) update the IP address with the IP address of the worker-1, worker-2, worker-3 of the kubernetes cluster (on which network-node-0, network-node-1 and network-node-2 are supposed to run).
 
 - In file `/hedera-local-node/09_importer_statefulset.yml`, point volumeClaimTemplate `addressbook-volume` to use Persistent Volume `addressbook-volume-multi-pv`. To do that, replace `addressbook-volume-pv` with `addressbook-volume-multi-pv` on line 55 in `09_importer_statefulset.yml`. 
 
-5. Init containers in the statefulsets takes care of the sequence in which the pods should get initialized and run. It also creates required volumes (grafana-data, minio-data, mirror-node-postgres, prometheus-data) on the worker nodes. 
+5. Init containers in the statefulsets takes care of the sequence in which the pods should get initialized and run. It also creates required volumes (`grafana-data`, `minio-data`, `mirror-node-postgres`, `prometheus-data`) on the worker nodes. 
 
 6. Create directory `/hedera-local-node/compose-network/mirror-node` and copy `modified_addressBook.multinode.bin` on all the worker nodes.
 
@@ -81,4 +81,3 @@ kubectl delete pv --all
 kubectl delete svc --all
 kubectl delete configmaps --all
 ```
-
